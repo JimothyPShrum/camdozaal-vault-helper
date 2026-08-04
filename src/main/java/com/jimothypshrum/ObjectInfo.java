@@ -1,0 +1,119 @@
+package com.jimothypshrum;
+
+import net.runelite.api.gameval.ObjectID;
+import com.google.common.collect.ImmutableMap;
+
+
+class ObjectInfo
+{
+    static final ImmutableMap<Integer, String> OBJECT_ID_NAMES = new ImmutableMap.Builder<Integer, String>()
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_1, "CAMDOZAAL_VAULT_BARRIER_1")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_2, "CAMDOZAAL_VAULT_BARRIER_2")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_3, "CAMDOZAAL_VAULT_BARRIER_3")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_4, "CAMDOZAAL_VAULT_BARRIER_4")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_5, "CAMDOZAAL_VAULT_BARRIER_5")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_6, "CAMDOZAAL_VAULT_BARRIER_6")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_7, "CAMDOZAAL_VAULT_BARRIER_7")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_8, "CAMDOZAAL_VAULT_BARRIER_8")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_9, "CAMDOZAAL_VAULT_BARRIER_9")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_10, "CAMDOZAAL_VAULT_BARRIER_10")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_11, "CAMDOZAAL_VAULT_BARRIER_11")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_12, "CAMDOZAAL_VAULT_BARRIER_12")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_13, "CAMDOZAAL_VAULT_BARRIER_13")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_15, "CAMDOZAAL_VAULT_BARRIER_15")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_18, "CAMDOZAAL_VAULT_BARRIER_18")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_17, "CAMDOZAAL_VAULT_BARRIER_17")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_19, "CAMDOZAAL_VAULT_BARRIER_19")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_1, "CAMDOZAAL_VAULT_CHEST_SMALL_1")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_2, "CAMDOZAAL_VAULT_CHEST_SMALL_2")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_3, "CAMDOZAAL_VAULT_CHEST_SMALL_3")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_4, "CAMDOZAAL_VAULT_CHEST_SMALL_4")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_5, "CAMDOZAAL_VAULT_CHEST_SMALL_5")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_6, "CAMDOZAAL_VAULT_CHEST_SMALL_6")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_1, "CAMDOZAAL_VAULT_CHEST_MEDIUM_1")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_2, "CAMDOZAAL_VAULT_CHEST_MEDIUM_2")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_3, "CAMDOZAAL_VAULT_CHEST_MEDIUM_3")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_4, "CAMDOZAAL_VAULT_CHEST_MEDIUM_4")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_1, "CAMDOZAAL_VAULT_CHEST_LARGE_1")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_2, "CAMDOZAAL_VAULT_CHEST_LARGE_2")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_3, "CAMDOZAAL_VAULT_CHEST_LARGE_3")
+            .put(ObjectID.CAMDOZAAL_VAULT_DOOR, "CAMDOZAAL_VAULT_DOOR")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_CLOSED, "CAMDOZAAL_VAULT_BARRIER_CLOSED")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_OPEN, "CAMDOZAAL_VAULT_BARRIER_OPEN")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_AVAILABLE, "CAMDOZAAL_VAULT_CHEST_SMALL_AVAILABLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_AVAILABLE, "CAMDOZAAL_VAULT_CHEST_MEDIUM_AVAILABLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_AVAILABLE, "CAMDOZAAL_VAULT_CHEST_LARGE_AVAILABLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_EMPTY, "CAMDOZAAL_VAULT_CHEST_EMPTY")
+            .build();
+
+    static final ImmutableMap<Integer, String> OBJECT_ID_NICKNAMES = new ImmutableMap.Builder<Integer, String>()
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_1, "B01")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_2, "B02")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_3, "B03")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_4, "B04")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_5, "B05")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_6, "B06")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_7, "B07")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_8, "B08")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_9, "B09")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_10, "B10")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_11, "B11")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_12, "B12")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_13, "B13")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_15, "B14")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_18, "B15")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_17, "B16")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_19, "B17")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_1, "P01")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_2, "P02")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_3, "P03")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_4, "P04")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_5, "P05")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_6, "P06")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_1, "P07")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_2, "P08")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_3, "P09")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_4, "P10")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_1, "P11")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_2, "P12")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_3, "P13")
+            .put(ObjectID.CAMDOZAAL_VAULT_DOOR, "EXIT")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_CLOSED, "CLOSED")
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_OPEN, "OPEN")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_AVAILABLE, "SIMPLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_AVAILABLE, "ELABORATE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_AVAILABLE, "ORNATE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_EMPTY, "EMPTY")
+            .build();
+
+    static final ImmutableMap<Integer, String> IMPOSTOR_ID_NAMES_ACTIVE = new ImmutableMap.Builder<Integer, String>()
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_OPEN, "CAMDOZAAL_VAULT_BARRIER_OPEN")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_AVAILABLE, "CAMDOZAAL_VAULT_CHEST_SMALL_AVAILABLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_AVAILABLE, "CAMDOZAAL_VAULT_CHEST_MEDIUM_AVAILABLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_AVAILABLE, "CAMDOZAAL_VAULT_CHEST_LARGE_AVAILABLE")
+            .build();
+
+    static final ImmutableMap<Integer, String> IMPOSTOR_ID_NAMES_INACTIVE = new ImmutableMap.Builder<Integer, String>()
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_CLOSED, "CAMDOZAAL_VAULT_BARRIER_CLOSED")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_EMPTY, "CAMDOZAAL_VAULT_CHEST_EMPTY")
+            .build();
+
+    static final ImmutableMap<Integer, String> IMPOSTOR_ID_NICKNAMES_ACTIVE = new ImmutableMap.Builder<Integer, String>()
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_OPEN, "OPEN")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_SMALL_AVAILABLE, "SIMPLE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_MEDIUM_AVAILABLE, "ELABORATE")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_LARGE_AVAILABLE, "ORNATE")
+            .build();
+
+    static final ImmutableMap<Integer, String> IMPOSTOR_ID_NICKNAMES_INACTIVE = new ImmutableMap.Builder<Integer, String>()
+            .put(ObjectID.CAMDOZAAL_VAULT_BARRIER_CLOSED, "CLOSED")
+            .put(ObjectID.CAMDOZAAL_VAULT_CHEST_EMPTY, "EMPTY")
+            .build();
+
+}
+
+
+
+
+
+
