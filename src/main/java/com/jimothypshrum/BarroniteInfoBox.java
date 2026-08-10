@@ -81,10 +81,7 @@ public class BarroniteInfoBox extends InfoBox{
     @Override
     public Color getTextColor()
     {
-        if (barroniteCount > 749){
-            return Color.WHITE;
-        }
-        return Color.RED;
+        return Color.WHITE;
     }
 
 }

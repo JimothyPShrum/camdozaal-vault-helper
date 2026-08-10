@@ -42,6 +42,7 @@ import net.runelite.api.*;
 import net.runelite.api.events.*;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -62,6 +63,9 @@ import net.runelite.api.gameval.ItemID;
 public class CamdozaalVaultlHelperPlugin extends Plugin {
     @Inject
     private Client client;
+
+    @Inject
+    private ClientThread clientThread;
 
     @Inject
     private CamdozaalVaultHelperConfig config;
@@ -118,6 +122,11 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         overlayManager.add(camdozaalVaultHelperOverlay);
         overlayManager.add(routeInfoOverlay);
         overlayManager.add(vaultTimerOverlay);
+
+        if (config.showBarroniteInfoBox()){
+            clientThread.invokeLater(() -> addBarroniteInfoBox(barroniteCount));
+        }
+
     }
 
     @Override
@@ -167,7 +176,8 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
     @Subscribe
     public void onConfigChanged(ConfigChanged event){
         String key = event.getKey();
-        if (key.equals("showBarroniteInfoBox")){
+
+        if (key.equals("showBarroniteInfoBox") && routeLength == 0){
             if (config.showBarroniteInfoBox()){
                 addBarroniteInfoBox(barroniteCount);
             }
@@ -202,7 +212,10 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
             {
                 log.debug("initialize");
 
-                infoBoxManager.removeInfoBox(infoBox);
+                if (config.showBarroniteInfoBox()){
+                    infoBoxManager.removeInfoBox(infoBox);
+                }
+
                 detectStates();
                 prioritizeElaborate = config.swapLockboxPrioritizationMode() == CamdozaalVaultHelperConfig.LockboxPrioritizationMode.ELABORATE;
                 needToReset = true;
