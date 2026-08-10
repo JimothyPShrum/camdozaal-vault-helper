@@ -22,6 +22,6 @@ a chest if still possible.**</ins> I spam click the next object until character 
 save time. (Note: skipping will break the next object highlighting
 for the current run)
 
-4. Toggleable InfoBox displaying amount of barronite shards stored in vault.
+4. Toggleable InfoBox displaying amount of barronite shards stored in forge.
 
 ![Shards](../assets/BarroniteInfoBox.png)
