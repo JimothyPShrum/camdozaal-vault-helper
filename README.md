@@ -5,10 +5,12 @@ through the vault, with the next object to be interacted with highlighted
 a different color. Default route targets maximum ornate lockboxes but can be
 toggled to target maximum elaborate lockboxes in plugin settings.
 
+![Illustration](../assets/CamdozaalVaultHelperPlugin.png)
+
 ## Features
 
 Toggle to prioritize elaborate lockboxes or ornate lockboxes. Certain layouts make
-taking ornate or elaborate lockboxes impossible, so route can rarely have 0 of target type.
+taking ornate or elaborate lockboxes impossible, meaning route can sometimes have 0 of target type.
 
 Selectable route highlight colors for full path and next object.
 
