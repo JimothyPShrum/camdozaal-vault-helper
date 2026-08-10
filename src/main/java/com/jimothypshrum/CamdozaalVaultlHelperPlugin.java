@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2026, JimothyPShrum <https://github.com/JimothyPShrum>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.jimothypshrum;
 
 import com.google.common.collect.Lists;
@@ -9,18 +34,15 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-
-
-import net.runelite.api.events.CommandExecuted;
-import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.*;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.events.ConfigChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.VarbitChanged;
-import net.runelite.api.events.ChatMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -48,6 +70,11 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
     private CamdozaalVaultHelperOverlay camdozaalVaultHelperOverlay;
 
     @Inject
+    private RouteInfoOverlay routeInfoOverlay;
+    @Inject
+    private VaultTimerOverlay vaultTimerOverlay;
+
+    @Inject
     private OverlayManager overlayManager;
 
     @Inject
@@ -60,21 +87,28 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
     private InfoBoxManager infoBoxManager;
 
     @Getter
-    private final static HashMap<String, GameObject> vaultObjects = new HashMap<>();
-    private final static HashMap<String, String> objectNumbers = new HashMap<>();
-    private StringBuilder objectStates = new StringBuilder(30);
+    private HashMap<String, GameObject> vaultObjects = new HashMap<>();
     private String barriers = "";
     private String pedestals = "";
-    private static boolean prioritizeElaborate = false;
+    @Getter
+    private int sCount = 0;
+    @Getter
+    private int eCount = 0;
+    @Getter
+    private int oCount = 0;
+    @Getter
+    private int routeLength = 0;
+    private boolean prioritizeElaborate = false;
     private boolean needToReset = false;
+    private boolean stateChanged = false;
+    private String[] fullRoute = {};
     @Getter
-    private String[] fullPath = {};
+    private String[] routeUniqueNodes = {};
+    private int routeNextIndex = 1;
     @Getter
-    private String[] pathUniqueNodes = {};
-    private int pathNextIndex = 1;
-    @Getter
-    private String pathNextNode = "EXIT";
-    private final HashMap<Integer, int[]> pathNextActivationCoords = new HashMap<>();
+    private String routeNextNode = "EXIT";
+    private HashMap<Integer, int[]> routeNextActivationCoords = new HashMap<>();
+    private GameState prevGameState = GameState.LOGGING_IN;
 
     private BarroniteInfoBox infoBox;
     private int barroniteCount = -1;
@@ -82,39 +116,39 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
     @Override
     protected void startUp() throws Exception {
         overlayManager.add(camdozaalVaultHelperOverlay);
+        overlayManager.add(routeInfoOverlay);
+        overlayManager.add(vaultTimerOverlay);
     }
 
     @Override
     protected void shutDown() throws Exception {
         overlayManager.remove(camdozaalVaultHelperOverlay);
+        overlayManager.remove(routeInfoOverlay);
+        overlayManager.remove(vaultTimerOverlay);
         infoBoxManager.removeInfoBox(infoBox);
         infoBox = null;
         barroniteCount = -1;
         resetAll();
-    }
 
-    @Subscribe
-    public void onCommandExecuted(CommandExecuted event){
-        if(event.getCommand().equals("test")){
-            String states = "100101000110001011101011011111";
-            convertObjStates(states);
-            log.debug(barriers+" "+pedestals);
+        final Widget timer = client.getWidget(InterfaceID.CamdozaalVault.TIMER);
 
-            String[] path = getBestPathEncoded(barriers+" "+pedestals);
-            log.debug(Arrays.toString(path));
+        if (timer != null){
+            timer.setHidden(false);
         }
     }
 
+    //update infobox if stored barronite count is updated
     @Subscribe
     public void onVarbitChanged(VarbitChanged event){
-        if (VarInfo.VARPLAYER_ID == event.getVarpId()){
+        if (VarInfo.VARPLAYER_ID == event.getVarpId()) {
             barroniteCount = event.getValue();
-            if (config.showBarroniteInfoBox()){
+            if (config.showBarroniteInfoBox()) {
                 addBarroniteInfoBox(barroniteCount);
             }
         }
     }
 
+    //update infobox if player checks vault for amount of barronite stored
     @Subscribe
     public void onChatMessage(ChatMessage event){
 
@@ -143,62 +177,94 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         }
     }
 
+    //Hide base game vault timer since it was getting in the way and haven't found how to relocate it easily.
+    //VaultTimerOverlay replaces it with textbox and is mostly equivalent
+    @Subscribe
+    public void onBeforeRender(BeforeRender event){
+        final Widget timer = client.getWidget(InterfaceID.CamdozaalVault.TIMER);
+
+        if (timer != null){
+            timer.setHidden(true);
+        }
+    }
+
     @Subscribe
     public void onGameTick(GameTick event) {
         int region = client.getLocalPlayer().getWorldLocation().getRegionID();
         int currX = client.getLocalPlayer().getWorldLocation().getX();
         int currY = client.getLocalPlayer().getWorldLocation().getY();
 
+        //vault is entirely contained in region 11867. only run main code when player is inside vault
         if (region == 11867){
-            if (objectNumbers.isEmpty()){
-                buildObjectNumbers();
-            }
 
+            //determine barrier/pedestal states upon vault entry
             if (!needToReset)
             {
-                getObjects();
-                detectObjectStates();
-                prioritizeElaborate = config.swapLockboxPrioritizationMode();
+                log.debug("initialize");
+
+                infoBoxManager.removeInfoBox(infoBox);
+                detectStates();
+                prioritizeElaborate = config.swapLockboxPrioritizationMode() == CamdozaalVaultHelperConfig.LockboxPrioritizationMode.ELABORATE;
                 needToReset = true;
 
-                convertObjStates(objectStates.toString());
-                fullPath = getBestPathEncoded(barriers+" "+pedestals);
+                fullRoute = getBestRouteEncoded(barriers+" "+pedestals);
 
-                pathUniqueNodes = Arrays.stream(fullPath).distinct().toArray(String[]::new);
+                for (String node: fullRoute){
+                    if (node.charAt(0) == 'P'){
+                        int pNum = Integer.parseInt(node.substring(1));
+
+                        if (pNum < 7){ sCount += 1;}
+                        else if (pNum < 11){ eCount += 1;}
+                        else { oCount += 1;}
+                    }
+                }
+
+                routeUniqueNodes = Arrays.stream(fullRoute).distinct().toArray(String[]::new);
                 loadNext();
 
-                log.debug("objectStates:{}", objectStates.toString());
-                log.debug("prioritizeElaborate:{}",prioritizeElaborate);
-                log.debug("fullPath:{}", Arrays.toString(fullPath));
-                log.debug("SPAWN --> {}", pathNextNode);
+                log.debug("fullRoute:{}", Arrays.toString(fullRoute));
+                log.debug("SPAWN --> {}", routeNextNode);
             }
 
-            boolean onActivationTile = false;
+            //reacquire barrier/lockbox GameObjects if game enters LOADING GameState during run
+            if (stateChanged && client.getGameState() == GameState.LOGGED_IN){
+                getObjects();
+                stateChanged = false;
+                log.debug("getting objects again after game state change");
+            }
 
-            for(int[] actCoord: pathNextActivationCoords.values()){
-                if (currX == actCoord[0] && currY == actCoord[1]){
-                    onActivationTile = true;
+            //determine next object in route and its activation tiles if player's current tile is on one of the
+            //activation tiles for current next object
+            for(int[] actCoord: routeNextActivationCoords.values()){
+                if (currX == actCoord[0] && currY == actCoord[1] && !routeNextNode.equals("EXIT")){
+                    String before = routeNextNode;
+                    routeNextIndex += 1;
+                    loadNext();
+                    String after = routeNextNode;
+                    log.debug("{} --> {}", before, after);
                     break;
                 }
             }
-
-            if(onActivationTile && !pathNextNode.equals("EXIT")){
-                String preload = pathNextNode;
-                pathNextIndex += 1;
-                loadNext();
-                String postload = pathNextNode;
-                log.debug("{} --> {}", preload, postload);
-            }
         }
+
+        //reset all vault variables once outside the vault
         else if(region != 11867 && needToReset){
             resetAll();
+            if (config.showBarroniteInfoBox()){
+                infoBoxManager.addInfoBox(infoBox);
+            }
         }
 
     }
 
+    //checks for a GameState change from LOGGED_IN to LOADING while inside vault to signal to reacquire vault objects
+    //once GameState LOGGED_IN is reached again
     @Subscribe
-    public void onGameStateChanged(GameStateChanged gameStateChanged) {
-        resetAll();
+    public void onGameStateChanged(GameStateChanged event){
+        if (event.getGameState() == GameState.LOADING && prevGameState == GameState.LOGGED_IN && needToReset){
+            stateChanged = true;
+        }
+        prevGameState = event.getGameState();
     }
 
     @Provides
@@ -206,6 +272,7 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         return configManager.getConfig(CamdozaalVaultHelperConfig.class);
     }
 
+    //search all tiles in scene for objects matching obj ids in ObjectInfo and store in vaultObjects
     public void getObjects(){
         vaultObjects.clear();
         WorldView wv = client.getTopLevelWorldView();
@@ -224,8 +291,8 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
 
                     int currId = currObjects[0].getId();
 
-                    if (ObjectInfo.OBJECT_ID_NICKNAMES.containsKey(currId)){
-                        String objNickname = ObjectInfo.OBJECT_ID_NICKNAMES.get(currId);
+                    if (ObjectInfo.OBJECT_ID_NICKNAME.containsKey(currId)){
+                        String objNickname = ObjectInfo.OBJECT_ID_NICKNAME.get(currId);
                         if(!vaultObjects.containsKey(objNickname)){
                             vaultObjects.put(objNickname, currObjects[0]);
                         }
@@ -235,27 +302,79 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         }
     }
 
-    public void detectObjectStates(){
-        int count = 1;
-        objectStates = new StringBuilder();
-        for (int objId : ObjectInfo.OBJECT_ID_NICKNAMES.keySet())
-        {
-            int impId = getImpId(objId);
-            if (ObjectInfo.IMPOSTOR_ID_NICKNAMES_ACTIVE.containsKey(impId)){
-                objectStates.append("1");
-            }
-            else if(ObjectInfo.IMPOSTOR_ID_NICKNAMES_INACTIVE.containsKey(impId)){
-                objectStates.append("0");
-            }
-            if (count > 29){
-                break;
-            }
+    /* There are 17 barriers controlled by 7 varbits and 13 lockbox pedestals controlled by 13 varbits.
+    Each barrier varbit controls which barrier in a group of 2 or 3 is active. Only 1 barrier is active per group.
+    May eventually change logic to check varbit values directly rather than check associated object impostor Ids.
 
-            count += 1;
+    Default States
+    varbits : vA vB vC  vD  vE vF  vG
+    barriers: 10 10 100 100 10 100 10   (0 = inactive, 1 = active)
+
+    Excluding the default states, there are 10 total additional states (01 for each the 2-groups and 010 and 001 for each the 3-groups).
+    Check 1 barrier from each 2-group and 2 barriers from each 3-group.
+    Searching barriers in ObjId order, add a character 0-9 to String barriers that corresponds to whichever non-default state has occurred,
+    or add nothing if default
+    start from 1 (ie v1 = 01 is 1, and v7 = 01 = 0)
+
+    example:
+    varbits : vA vB vC  vD  vE vF  vG
+    barriers: 01 10 001 100 10 010 10
+               1  2  34  56  7  89  0
+    barriers = 1      4         8     --> "148"
+
+    Each Lockbox is controlled by its own varbit. All 3 ornate lockboxes always spawn, so no need to check for them
+    10 lockboxes to check for (6 simple, 4 elaborate). ObjId order has all 6 Simples first followed by 4 Elaborates
+
+    Check 10 lockbox objects and add character 0-9 (starting with 1) to String pedestalsthat corresponds
+    to lockbox number if it has spawned, or add nothing if not spawned
+
+    example:
+    Lockbox  : SSSXSXEEXE (S/E = spawned Simple/Elaborate, X = unspawned)
+    pedestals: 123 5 78 0 --> "1235780"
+
+    encode strings barriers and pedestals to base 36 to eventually search for corresponding route in bestroutes.tsv
+    */
+
+    public void detectStates(){
+        getObjects();
+        log.debug("got objects");
+        barriers = "";
+        pedestals = "";
+
+        for (Map.Entry<String, String> entry: ObjectInfo.STATE_OBJECT_CONVERSIONS.entrySet()){
+            String currObjName = entry.getKey();
+            String currObjConversion = entry.getValue();
+            int currImp = getImpId(ObjectInfo.NICKNAME_OBJECT_ID.get(currObjName));
+
+            if (currObjName.charAt(0) == 'B'){
+                barriers = (ObjectInfo.IMPOSTOR_ID_NICKNAME_ACTIVE.containsKey(currImp)) ? barriers + currObjConversion : barriers;
+            }
+            else if (currObjName.charAt(0) == 'P'){
+                pedestals = (ObjectInfo.IMPOSTOR_ID_NICKNAME_ACTIVE.containsKey(currImp)) ? pedestals + currObjConversion : pedestals;
+            }
         }
+
+        log.debug("barriers before: {}", barriers);
+        log.debug("pedestals before: {}", pedestals);
+
+        barriers = (!barriers.isEmpty()) ? Integer.toString(Integer.parseInt(barriers),36).toUpperCase() : barriers;
+        pedestals = (!pedestals.isEmpty()) ? Integer.toString(Integer.parseInt(pedestals),36).toUpperCase() : pedestals;
+        log.debug("barriers: {}", barriers);
+        log.debug("pedestals: {}", pedestals);
     }
 
-    public static String getNextCoords(String next) {
+    /* objcoords.tsv has 6 columns. some rows only use 4 columns. all coordinates are "x y" format.
+    2nd column is the tile coordinate of the object itself and is currently not used.
+    activation tiles are tiles where player can pass through barrier or take lockbox. barriers have 4 act tiles (2 for each side).
+    pedestals only have 2 act tiles
+
+     col1                                     col2       col3       col4       col5       col6
+     objNickname ie(B01-B17, P01-P13, EXIT) | objCoord | actTile1 | actTile2 | actTile3 | actTile4
+
+     searches each line in objcoords.tsv for the line starting with next obj nickname and returns the entire line
+     */
+
+    public String getNextCoords(String next) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/objcoords.tsv")))) {
 
             String line;
@@ -271,43 +390,47 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         }
     }
 
+    //return impostor id of passed obj id. all obj ids passed to this method are guaranteed to have an impostor
     public int getImpId(int objId)
     {
         return client.getObjectDefinition(objId).getImpostor().getId();
     }
 
     public void resetAll(){
+        log.debug("resetting");
         vaultObjects.clear();
-        objectNumbers.clear();
-        pathNextActivationCoords.clear();
+        routeNextActivationCoords.clear();
         needToReset = false;
-        objectStates = new StringBuilder(30);
         barriers = "";
         pedestals = "";
-        fullPath = new String[]{};
-        pathUniqueNodes = new String[]{};
-        pathNextIndex = 1;
-        pathNextNode = "EXIT";
+        sCount = 0;
+        eCount = 0;
+        oCount = 0;
+        routeLength = 0;
+        fullRoute = new String[]{};
+        routeUniqueNodes = new String[]{};
+        routeNextIndex = 1;
+        routeNextNode = "EXIT";
     }
 
+    // get the next object in the route and its activation tile coordinates
     public void loadNext(){
-        pathNextNode = fullPath[pathNextIndex];
-        String[] nextCoordsData = getNextCoords(pathNextNode).split("\t");
-        int nextX = Integer.parseInt(nextCoordsData[1].split(" ")[0]);
-        int nextY = Integer.parseInt(nextCoordsData[1].split(" ")[1]);
-        pathNextActivationCoords.clear();
+        log.debug("loading next");
+        routeNextNode = fullRoute[routeNextIndex];
+        String[] nextCoordsData = getNextCoords(routeNextNode).split("\t");
+        routeNextActivationCoords.clear();
 
         for (int i = 2; i < nextCoordsData.length; i++){
             int activationX = Integer.parseInt(nextCoordsData[i].split(" ")[0]);
             int activationY = Integer.parseInt(nextCoordsData[i].split(" ")[1]);
-            int[] currCoords = {activationX, activationY};
-            pathNextActivationCoords.put(i-1, currCoords);
+            int[] nextCoords = {activationX, activationY};
+            routeNextActivationCoords.put(i-1, nextCoords);
         }
     }
 
     public void addBarroniteInfoBox(int barroniteCount){
         removeBarroniteInfoBox();
-        infoBox = new BarroniteInfoBox(itemManager.getImage(ItemID.CAMDOZAAL_BARRONITE_SHARD_7), this, barroniteCount);
+        infoBox = new BarroniteInfoBox(itemManager.getImage(ItemID.CAMDOZAAL_BARRONITE_SHARD_5), this, barroniteCount);
         infoBoxManager.addInfoBox(infoBox);
     }
 
@@ -315,43 +438,25 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         infoBoxManager.removeInfoBox(infoBox);
     }
 
-    public void convertObjStates(String states){
-        int[] groupLengths = {2,2,3,3,2,3,2};
-        int start = 0;
-        int count = 1;
-        barriers = "";
-        pedestals = "";
+    /* bestroutes.tsv is formatted as 3 columns. col1 is formatted as explained in detectStates() comments.
+    index numbers refer to row number in uniqueroutes.tsv
 
-        for (int length: groupLengths) {
-            if (length == 2) {
-                barriers = (states.substring(start, start + length).equals("01")) ? barriers + String.valueOf(count) : barriers;
-                count = (count != 9) ? count + 1 : 0;
-            } else {
-                barriers = (states.substring(start, start + length).equals("010")) ? barriers + String.valueOf(count) : barriers;
-                count = (count != 9) ? count + 1 : 0;
-                barriers = (states.substring(start, start + length).equals("001")) ? barriers + String.valueOf(count) : barriers;
-                count = (count != 9) ? count + 1 : 0;
-            }
-            start += length;
-        }
+    col1               | col2                                                | col3
+    barriers pedestals | row index for max Ornate lockbox route (in base 36) | row index for max Elaborate lockbox route (in base 36)
 
-        int[] pedestalIndex = {17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
-        count = 1;
+    search bestroutes.tsv for row starting with barriers + " " + pedestals that were previously determined in detectStates()
+    return decoded route as String[] (decoding done in convertEncodedRoute)
 
-        for (int index: pedestalIndex){
-            pedestals = (states.substring(index,index+1).equals("1")) ? pedestals + String.valueOf(count): pedestals;
-            count = (count != 9) ? count + 1 : 0;
-        }
-    }
-
-    public static String[] getBestPathEncoded(String states) {
+     */
+    public String[] getBestRouteEncoded(String states) {
         int length = states.length();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/bestpaths.tsv")))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/bestroutes.tsv")))) {
 
             String line;
             while ((line = br.readLine()) != null) {
-                if (line.substring(0,length).equals(states)){
-                    return convertEncodedPath(line);
+                if (line.length() < length + 1) {continue;}
+                if (line.substring(0,length+1).equals(states+"\t")){
+                    return convertEncodedRoute(line);
                 }
             }
             return null;
@@ -360,25 +465,43 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
             throw new UncheckedIOException(e);
         }
     }
+    /* uniqueroutes.tsv is formatted with 2 columns
 
-    public static String[] convertEncodedPath(String path){
-        String[] pathArray = path.split("\t");
-        int oMaxPathIndex = Integer.parseInt(pathArray[1].strip());
-        int eMaxPathIndex = Integer.parseInt(pathArray[2].strip());
-        String encodedPath = "";
+    col1                                                                       | col2
+    double encoded route (base 36, then numbers corresponding to obj Nicknames) | route length (in ticks)
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/uniquepaths.txt")))) {
+    passed string is a line from bestroutes.tsv (encoded obj states | max ornate route index | max elaborate route index)
+
+    convert indexes from base36 to decimal then iterate through uniqueroutes.tsv to the appropriate index determined
+    by value of prioritizeElaborate variable controlled by config
+
+    convert uniqueroute col1 value to decimal then split into array of 2 digit strings that correspond to object nicknames
+    as defined in ObjectInfo
+
+    return fully decoded array of full route
+     */
+    public String[] convertEncodedRoute(String route){
+        String[] routeArray = route.split("\t");
+        int oMaxRouteIndex = Integer.parseInt(routeArray[1].strip(),36);
+        int eMaxRouteIndex = Integer.parseInt(routeArray[2].strip(),36);
+        String encodedRoute = "";
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/uniqueroutes.tsv")))) {
 
             String line;
             int count = 0;
 
             while ((line = br.readLine()) != null) {
-                if (!prioritizeElaborate && count == oMaxPathIndex){
-                    encodedPath = line.strip();
+                if (!prioritizeElaborate && count == oMaxRouteIndex){
+                    String[] routeData = line.strip().split("\t");
+                    encodedRoute = routeData[0];
+                    routeLength = Integer.parseInt(routeData[1]);
                     break;
                 }
-                else if (prioritizeElaborate && count == eMaxPathIndex){
-                    encodedPath = line.strip();
+                else if (prioritizeElaborate && count == eMaxRouteIndex){
+                    String[] routeData = line.strip().split("\t");
+                    encodedRoute = routeData[0];
+                    routeLength = Integer.parseInt(routeData[1]);
                     break;
                 }
                 count += 1;
@@ -388,44 +511,17 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
             throw new UncheckedIOException(e);
         }
 
-        BigInteger bigIntPath = new BigInteger(encodedPath,16);
-        String longPath = bigIntPath.toString();
-        List<String> decimalArray = Lists.newArrayList(Splitter.fixedLength(2).split(longPath));
-        String decodedPath = "SPAWN ";
+        BigInteger bigIntRoute = new BigInteger(encodedRoute,36);
+        String strRoute = bigIntRoute.toString();
+        List<String> decimalArray = Lists.newArrayList(Splitter.fixedLength(2).split(strRoute));
+        String decodedRoute = "SPAWN ";
 
         for (String objIndex: decimalArray){
-            if (!objIndex.equals("40")){
-                decodedPath = decodedPath.concat(objectNumbers.get(objIndex) + " ");
-            }
-            else{
-                decodedPath = decodedPath.concat(objectNumbers.get(objIndex));
-            }
+            decodedRoute = (!objIndex.equals("40")) ? decodedRoute.concat(ObjectInfo.ROUTE_OBJECT_NUMBERS.get(objIndex) + " ")
+                    : decodedRoute.concat(ObjectInfo.ROUTE_OBJECT_NUMBERS.get(objIndex));
         }
-        return decodedPath.split(" ");
+        return decodedRoute.split(" ");
 
-    }
-
-    public void buildObjectNumbers(){
-        int index = 1;
-        int index2 = 1;
-        for (int count = 10; count < 41; count++){
-
-            if (count < 27){
-                String strIndex = Integer.toString(index);
-                strIndex = (strIndex.length() == 1) ? "0" + strIndex : strIndex;
-                objectNumbers.put(Integer.toString(count), "B"+strIndex);
-                index += 1;
-            }
-            else if (count < 40){
-                String strIndex = Integer.toString(index2);
-                strIndex = (strIndex.length() == 1) ? "0" + strIndex : strIndex;
-                objectNumbers.put(Integer.toString(count), "P"+strIndex);
-                index2 += 1;
-            }
-            else{
-                objectNumbers.put(Integer.toString(count), "EXIT");
-            }
-        }
     }
 
 
