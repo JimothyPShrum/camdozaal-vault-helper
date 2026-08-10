@@ -2,8 +2,7 @@
 
 Upon vault entry, highlights all barriers and lockboxes in optimal route 
 through the vault, with the next object to be interacted with highlighted 
-a different color. Default route targets maximum ornate lockboxes but can be
-toggled to target maximum elaborate lockboxes in plugin settings.
+a different color.
 
 ![Illustration](../assets/CamdozaalVaultHelperPlugin.png)
 
