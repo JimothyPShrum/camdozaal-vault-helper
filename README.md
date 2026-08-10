@@ -9,17 +9,19 @@ toggled to target maximum elaborate lockboxes in plugin settings.
 
 ## Features
 
-Toggle to prioritize elaborate lockboxes or ornate lockboxes. Certain layouts make
+1. Toggle to prioritize elaborate lockboxes or ornate lockboxes. Certain layouts make
 taking ornate or elaborate lockboxes impossible, meaning route can sometimes have 0 of target type.
 
-Selectable route highlight colors for full path and next object.
+2. Selectable route highlight colors for full path and next object.
 
-Toggleable InfoBox displaying amount of barronite shards stored in vault.
-
-Toggleable TextBox displaying estimated time in seconds route will take to complete,
+3. Toggleable TextBox displaying estimated time in seconds route will take to complete,
 the "Risk If Delayed," and the number of lockboxes in route. This risk means how likely 
-a player is to fail to exit in time if they mess up. Some of the routes are tick perfect;
+a player is to fail to exit in time if they mess up. <ins>**Some of the routes are tick perfect;
 if a mistake occurs when risk is HIGH (58.2-59.4s routes), consider skipping 
-a chest if still possible. (Note: skipping will break the next object highlighting
+a chest if still possible.**</ins> I spam click the next object until character begins moving to
+save time. (Note: skipping will break the next object highlighting
 for the current run)
 
+4. Toggleable InfoBox displaying amount of barronite shards stored in vault.
+
+![Shards](../assets/BarroniteInfoBox.png)
