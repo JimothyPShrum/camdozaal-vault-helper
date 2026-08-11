@@ -36,12 +36,12 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 
 public class VaultTimerOverlay extends OverlayPanel{
     private final Client client;
-    private final CamdozaalVaultlHelperPlugin plugin;
+    private final CamdozaalVaultHelperPlugin plugin;
     private final CamdozaalVaultHelperConfig config;
     private int onClientTick = 0;
 
     @Inject
-    private VaultTimerOverlay(CamdozaalVaultlHelperPlugin plugin, CamdozaalVaultHelperConfig config, Client client){
+    private VaultTimerOverlay(CamdozaalVaultHelperPlugin plugin, CamdozaalVaultHelperConfig config, Client client){
         super(plugin);
         setPosition(OverlayPosition.TOP_LEFT);
         setPriority(PRIORITY_LOW);

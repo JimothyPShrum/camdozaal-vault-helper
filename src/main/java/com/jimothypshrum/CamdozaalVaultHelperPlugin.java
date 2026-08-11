@@ -60,7 +60,7 @@ import net.runelite.api.gameval.ItemID;
 )
 
 
-public class CamdozaalVaultlHelperPlugin extends Plugin {
+public class CamdozaalVaultHelperPlugin extends Plugin {
     @Inject
     private Client client;
 
@@ -388,7 +388,7 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
      */
 
     public String getNextCoords(String next) {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/objcoords.tsv")))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultHelperPlugin.class.getResourceAsStream("/objcoords.tsv")))) {
 
             String line;
             while ((line = br.readLine()) != null) {
@@ -463,7 +463,7 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
      */
     public String[] getBestRouteEncoded(String states) {
         int length = states.length();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/bestroutes.tsv")))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultHelperPlugin.class.getResourceAsStream("/bestroutes.tsv")))) {
 
             String line;
             while ((line = br.readLine()) != null) {
@@ -499,7 +499,7 @@ public class CamdozaalVaultlHelperPlugin extends Plugin {
         int eMaxRouteIndex = Integer.parseInt(routeArray[2].strip(),36);
         String encodedRoute = "";
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultlHelperPlugin.class.getResourceAsStream("/uniqueroutes.tsv")))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(CamdozaalVaultHelperPlugin.class.getResourceAsStream("/uniqueroutes.tsv")))) {
 
             String line;
             int count = 0;

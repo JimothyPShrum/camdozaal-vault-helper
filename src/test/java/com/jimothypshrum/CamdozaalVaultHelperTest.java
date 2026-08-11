@@ -7,7 +7,7 @@ public class CamdozaalVaultHelperTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(CamdozaalVaultlHelperPlugin.class);
+		ExternalPluginManager.loadBuiltin(CamdozaalVaultHelperPlugin.class);
 		RuneLite.main(args);
 	}
 }
