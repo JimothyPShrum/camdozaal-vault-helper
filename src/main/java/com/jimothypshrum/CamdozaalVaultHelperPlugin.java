@@ -115,6 +115,7 @@ public class CamdozaalVaultHelperPlugin extends Plugin {
     private int barroniteCount = -1;
     private int region = -1;
     private int previousRegion = -1;
+    private boolean showInfoBox = false;
     private final Set<Integer> REGIONS = Set.of(11610, 11611, 11866, 11867, 12122);
 
     @Override
@@ -125,6 +126,10 @@ public class CamdozaalVaultHelperPlugin extends Plugin {
 
         if (config.showBarroniteInfoBox()){
             clientThread.invokeLater(() -> {
+                if (!(client.getGameState() == GameState.LOGGED_IN || client.getGameState() == GameState.LOADING)) {
+                    showInfoBox = true;
+                    return;
+                }
                 if (REGIONS.contains(client.getLocalPlayer().getWorldLocation().getRegionID())){
                     addBarroniteInfoBox(barroniteCount);
                 }
@@ -144,6 +149,7 @@ public class CamdozaalVaultHelperPlugin extends Plugin {
         barroniteCount = -1;
         region = -1;
         previousRegion = -1;
+        showInfoBox = false;
         resetAll();
 
         final Widget timer = client.getWidget(InterfaceID.CamdozaalVault.TIMER);
@@ -283,6 +289,12 @@ public class CamdozaalVaultHelperPlugin extends Plugin {
         //Remove infobox after leaving Camdozaal
         if (!REGIONS.contains(region) && REGIONS.contains(previousRegion) && config.showBarroniteInfoBox() && previousRegion != -1){
             removeBarroniteInfoBox();
+        }
+
+        //Add infobox once game loads if plugin was turned on while logged out
+        if (REGIONS.contains(region) && showInfoBox){
+            showInfoBox = false;
+            addBarroniteInfoBox(barroniteCount);
         }
 
         previousRegion = region;
