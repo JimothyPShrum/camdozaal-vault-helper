@@ -43,11 +43,11 @@ public class CamdozaalVaultHelperOverlay extends Overlay
 {
 
     private final Client client;
-    private final CamdozaalVaultlHelperPlugin plugin;
+    private final CamdozaalVaultHelperPlugin plugin;
     private final CamdozaalVaultHelperConfig config;
 
     @Inject
-    private CamdozaalVaultHelperOverlay(Client client, CamdozaalVaultlHelperPlugin plugin, CamdozaalVaultHelperConfig config)
+    private CamdozaalVaultHelperOverlay(Client client, CamdozaalVaultHelperPlugin plugin, CamdozaalVaultHelperConfig config)
     {
         this.client = client;
         this.plugin = plugin;

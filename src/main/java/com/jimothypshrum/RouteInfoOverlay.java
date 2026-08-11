@@ -34,11 +34,11 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 
 public class RouteInfoOverlay extends OverlayPanel{
 
-    private final CamdozaalVaultlHelperPlugin plugin;
+    private final CamdozaalVaultHelperPlugin plugin;
     private final CamdozaalVaultHelperConfig config;
 
     @Inject
-    private RouteInfoOverlay(CamdozaalVaultlHelperPlugin plugin, CamdozaalVaultHelperConfig config){
+    private RouteInfoOverlay(CamdozaalVaultHelperPlugin plugin, CamdozaalVaultHelperConfig config){
         super(plugin);
         setPosition(OverlayPosition.TOP_LEFT);
         setPriority(PRIORITY_LOW);
